@@ -1,0 +1,47 @@
+$color-1: lightcoral;
+
+* {
+  font-family: Helvetica Neue;
+}
+
+#app {
+  .splash-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+  }
+
+  .chat-container {
+    position: relative;
+    max-width: 500px;
+    height: 80vh;
+    margin: 10vh auto 0 auto;
+    padding: 20px;
+    background: lightgrey;
+
+    .participants {
+      display: flex;
+    }
+
+    .message-window {
+      display: flex;
+      flex-direction: column;
+      background: white;
+      height: 80%;
+      overflow: scroll;
+
+      .message {
+        &.self {
+          text-align: right;
+        }
+      }
+    }
+
+    .composer {
+      position: absolute;
+      bottom: 20px;
+    }
+  }
+}
