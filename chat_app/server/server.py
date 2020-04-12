@@ -1,4 +1,4 @@
-from uuid import uuid4 as uuid
+import random, string
 
 from flask import Flask, render_template, jsonify
 from flask_scss import Scss
@@ -19,6 +19,9 @@ socketio = SocketIO(app)
 ROOM_ID = 1
 PARTICIPANTS = []
 
+def new_uuid():
+  return ''.join(random.choices(string.ascii_letters, k=8))
+
 @app.route('/')
 def index():
   return render_template('index.html')
@@ -26,7 +29,7 @@ def index():
 @socketio.on('join_room')
 def on_join(data):
   name = data['name']
-  id = str(uuid()).split("-")[-1]
+  id = new_uuid()
   PARTICIPANTS.append({"id": id, "name": name})
   join_room(ROOM_ID)
   emit(
@@ -51,7 +54,8 @@ def on_join(data):
 
 @socketio.on('message')
 def on_join(data):
-  # pass message through
+  # append ID and pass message through
+  data['id'] = new_uuid()
   emit('message', data, room=ROOM_ID)
 
 @socketio.on('disconnect')

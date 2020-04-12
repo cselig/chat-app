@@ -14,15 +14,22 @@ $color-1: lightcoral;
   }
 
   .chat-container {
+    display: flex;
+    flex-direction: column;
     position: relative;
     max-width: 500px;
     height: 80vh;
     margin: 10vh auto 0 auto;
     padding: 20px;
-    background: lightgrey;
+    background: #D6DBDF;
+    border-radius: 8px;
 
     .participants {
       display: flex;
+
+      p {
+        margin-bottom: 20px;
+      }
     }
 
     .message-window {
@@ -31,17 +38,56 @@ $color-1: lightcoral;
       background: white;
       height: 80%;
       overflow: scroll;
+      padding: 10px;
+      border-radius: 8px;
 
       .message {
-        &.self {
-          text-align: right;
+        display: flex;
+        flex-direction: column;
+        width: fit-content;
+        max-width: 40vw;
+        margin: 4px 0;
+        transition: transform 0.3s ease;
+
+        .author {
+          color: #909497;
+          font-size: 10px;
+          margin: 0 0 4px 2px;
+        }
+
+        .content {
+          padding: 8px;
+          border-radius: 8px;
+        }
+
+        &.self  {
+          align-self: flex-end;
+
+          .author {
+            text-align: right;
+          }
+
+          .content {
+            background-color: #85C1E9;
+          }
+        }
+
+        &.other  {
+          .content {
+            background-color: #D6EAF8;
+          }
         }
       }
     }
 
     .composer {
-      position: absolute;
-      bottom: 20px;
+      align-self: center;
+      margin-top: 20px;
+
+      input {
+        width: 400px;
+        margin-right: 4px;
+      }
     }
   }
 }

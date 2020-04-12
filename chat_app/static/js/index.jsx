@@ -4,15 +4,46 @@ import io from "socket.io-client"
 
 let $ = require("jquery");
 
-function MessageWindow({messages, id}) {
-  let messages_disp = messages.map((m, i) => {
+class Message extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {offscreen: true};
+  }
+
+  componentDidMount() {
+    setTimeout(
+      () => this.setState({offscreen: false}),
+      50);
+    setTimeout(
+      () => $(".message." + this.props.message.id)[0].scrollIntoView({behavior: "smooth"}),
+      350 // timeout + transition duration
+    );
+  }
+
+  render() {
+    let {message, user_id} = this.props;
+    let {content, id, name, sender_id} = message;
+
+    let className = (sender_id === user_id) ? "self" : "other";
+
+    let x_translate = (!this.state.offscreen) ? 0 :
+      (className == "self") ? 100 : -100;
+    let translate = `translate(${x_translate}px,0px)`
+
     return (
       <div
-        key={i}
-        className={"message " + (m.id === id ? "self" : "other") }
+        className={"message " + className + " " + id}
+        style={{transform: translate}}
       >
-        {m.name + ": " + m.content}
+        <p className="author">{name}</p>
+        <div className="content">{content}</div>
       </div>);
+  }
+}
+
+function MessageWindow({messages, user_id}) {
+  let messages_disp = messages.map((m, i) => {
+    return <Message message={m} key={m.id} user_id={user_id} />;
   });
   return (
     <div className="message-window">
@@ -30,14 +61,14 @@ function Composer({sendMessage}) {
   )
 }
 
-function ChatWindow({participants, messages, id, sendMessage}) {
+function ChatWindow({participants, messages, user_id, sendMessage}) {
   return (
     <div className="chat-container">
       <div className="participants">
         <p style={{marginRight: 5}}>In Room:</p>
-        <p>{participants.map(x => x.name + "(" + x.id + ")").join(", ")}</p>
+        <p>{participants.map(x => x.name).join(", ")}</p>
       </div>
-      <MessageWindow messages={messages} id={id} />
+      <MessageWindow messages={messages} user_id={user_id} />
       <Composer sendMessage={sendMessage} />
     </div>
   );
@@ -50,7 +81,7 @@ class Container extends React.Component {
       joined_room: false,
       messages: [],
       participants: [],
-      id: "",
+      user_id: "",
       name: "",
     };
   }
@@ -65,14 +96,14 @@ class Container extends React.Component {
     // you joined the room
     this.socket.on('join_room', ({id, participants}) => {
       this.setState({
-        id: id,
+        user_id: id,
         joined_room: true,
         participants: participants,
       });
       this.socket.emit(
         "message",
         {"content": "hi",
-         "id": this.state.id,
+         "sender_id": this.state.user_id,
          "name": this.state.name}
       );
     });
@@ -90,10 +121,12 @@ class Container extends React.Component {
 
   joinRoom() {
     let name = $("input[name=nameInput]").val();
-    this.setState({name: name})
-    this.socket.emit("join_room", {"name": name});
-    // server will then send "join_room" event, which triggers client callback
-    // and updates component state
+    if (name !== "") {
+      this.setState({name: name})
+      this.socket.emit("join_room", {"name": name});
+      // server will then send "join_room" event, which triggers client callback
+      // and updates component state
+    }
   }
 
   sendMessage() {
@@ -103,7 +136,7 @@ class Container extends React.Component {
       this.socket.emit(
         "message",
         {"content": message,
-        "id": this.state.id,
+        "sender_id": this.state.user_id,
         "name": this.state.name}
       );
     }
@@ -114,7 +147,7 @@ class Container extends React.Component {
       return <ChatWindow
                 participants={this.state.participants}
                 messages={this.state.messages}
-                id={this.state.id}
+                user_id={this.state.user_id}
                 sendMessage={() => this.sendMessage()} />
     } else {
       return (
